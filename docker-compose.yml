@@ -1,16 +1,40 @@
 version : “3”
-restart: always
 services :
+  # rabbitmq:
+  #   image: "rabbitmq:3-management"
+  #   ports:
+  #     - "5672:5672"  # RabbitMQ default port
+  #     - "15672:15672"  # RabbitMQ management UI port
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=guest
+  #     - RABBITMQ_DEFAULT_PASS=guest
+    
+  # celery-worker:
+  #   build:
+  #     context: .
+  #   command: celery -A app.celery worker --loglevel=info
+  #   depends_on:
+  #     - rabbitmq
+
   app:
     build: .
     expose:
       - 5000
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+        reservations:
+          cpus: "0.5"
+      restart_policy:
+        condition: on-failure
+      
   nginx:
     image: nginx:latest
     container_name: nginx_container
     ports:
       - 80:80
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - app
